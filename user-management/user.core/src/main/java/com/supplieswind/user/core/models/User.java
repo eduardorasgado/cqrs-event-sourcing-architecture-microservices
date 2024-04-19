@@ -1,5 +1,8 @@
 package com.supplieswind.user.core.models;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,9 +18,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class User {
     @Id
     private String id;
+
+    @NotEmpty(message = "firstname is mandatory")
     private String firstname;
+
+    @NotEmpty(message = "lastname is mandatory")
     private String lastname;
+
+    @Email(message = "please provide a valid email address")
     private String emailAddress;
 
+    @NotNull(message = "please provide account credentials")
     private Account account;
 }
