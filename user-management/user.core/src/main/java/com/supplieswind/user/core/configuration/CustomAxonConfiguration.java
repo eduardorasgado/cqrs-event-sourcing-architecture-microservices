@@ -30,7 +30,7 @@ public class CustomAxonConfiguration {
     @Value("${spring.data.mongodb.port:27017}")
     private int mongoPort;
 
-    @Value("${spring.data.mongodb.db:user}")
+    @Value("${spring.data.mongodb.database:user}")
     private String mongoDatabase;
 
     @Value("eventStore")
@@ -68,6 +68,7 @@ public class CustomAxonConfiguration {
         return MongoEventStorageEngine.builder()
                 .mongoTemplate(DefaultMongoTemplate.builder()
                         .mongoDatabase(client)
+
                         .build())
                 .eventSerializer(JacksonSerializer.defaultSerializer())
                 .snapshotSerializer(JacksonSerializer.defaultSerializer())

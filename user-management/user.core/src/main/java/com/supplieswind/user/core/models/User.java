@@ -1,5 +1,6 @@
 package com.supplieswind.user.core.models;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -26,8 +27,10 @@ public class User {
     private String lastname;
 
     @Email(message = "please provide a valid email address")
+    @NotEmpty(message = "email address is mandatory")
     private String emailAddress;
 
+    @Valid
     @NotNull(message = "please provide account credentials")
     private Account account;
 }
