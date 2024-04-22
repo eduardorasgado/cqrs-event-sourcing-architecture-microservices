@@ -30,8 +30,13 @@ public class CustomAxonConfiguration {
     @Value("${spring.data.mongodb.port:27017}")
     private int mongoPort;
 
+    // mongo db where the current state of users is stored
     @Value("${spring.data.mongodb.database:user}")
-    private String mongoDatabase;
+    private String readDatabase;
+
+    // mongo db to store the axon events
+    @Value("${custom.axon.eventstore.database:user-event}")
+    private String writeDatabase;
 
     @Value("eventStore")
     private String embeddedEventStoreName;
@@ -51,7 +56,7 @@ public class CustomAxonConfiguration {
     @Bean
     public MongoTemplate axonMongoTemplate() {
         return DefaultMongoTemplate.builder()
-                .mongoDatabase(mongoClient(), mongoDatabase)
+                .mongoDatabase(mongoClient(), readDatabase)
                 .build();
     }
 
@@ -67,8 +72,7 @@ public class CustomAxonConfiguration {
     public EventStorageEngine eventStorageEngine(MongoClient client) {
         return MongoEventStorageEngine.builder()
                 .mongoTemplate(DefaultMongoTemplate.builder()
-                        .mongoDatabase(client)
-
+                        .mongoDatabase(client, writeDatabase)
                         .build())
                 .eventSerializer(JacksonSerializer.defaultSerializer())
                 .snapshotSerializer(JacksonSerializer.defaultSerializer())

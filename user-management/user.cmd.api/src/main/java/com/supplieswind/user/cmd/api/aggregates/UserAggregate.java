@@ -1,4 +1,4 @@
-package com.supplieswind.user.cmd.api.agregates;
+package com.supplieswind.user.cmd.api.aggregates;
 
 import com.supplieswind.user.cmd.api.commands.RegisterUserCommand;
 import com.supplieswind.user.cmd.api.commands.RemoveUserCommand;

@@ -1,4 +1,4 @@
-package com.supplieswind.user.cmd.api.dto;
+package com.supplieswind.user.core.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

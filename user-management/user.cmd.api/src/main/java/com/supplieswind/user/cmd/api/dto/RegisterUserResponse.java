@@ -1,5 +1,6 @@
 package com.supplieswind.user.cmd.api.dto;
 
+import com.supplieswind.user.core.dto.BaseResponse;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
