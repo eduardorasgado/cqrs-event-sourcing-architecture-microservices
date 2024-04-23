@@ -11,6 +11,7 @@ import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +23,7 @@ public class UserQueryHandlerImpl implements UserQueryHandler{
     public UserLookupResponse on(FindUserByIdQuery query) {
         User user = repository
                 .findById(query.getId())
-                .orElseThrow();
+                .orElseThrow(NoSuchElementException::new);
 
         return new UserLookupResponse(List.of(user));
     }
