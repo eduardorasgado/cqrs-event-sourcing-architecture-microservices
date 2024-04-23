@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -20,6 +20,7 @@
         <module>user.core</module>
         <module>user.cmd.api</module>
         <module>user.query.api</module>
+        <module>user.auth</module>
     </modules>
 
     <properties>
