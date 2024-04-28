@@ -1,0 +1,37 @@
+# app options
+server:
+  port: 8083
+
+# logging options
+logging:
+  level:
+    org.springframework.security: trace
+    org.springframework.security.oauth2: trace
+
+# mongo db
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: user-read
+security:
+  oauth2:
+    authorizationserver:
+      issuer: http://auth-server:8083
+      client:
+        user-client:
+          registration:
+            client-name: "User Client"
+            client-id: springbankClient
+            client-secret: springbankSecret
+            token-validity-seconds: 300
+            refresh-token-validity-seconds: 1500
+            client-authentication-methods:
+              - client_secret_basic
+            authorization-grant-types:
+              - client_credentials
+              - refresh_token
+            scopes:
+              - read
+              - write

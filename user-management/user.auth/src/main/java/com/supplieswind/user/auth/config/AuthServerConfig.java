@@ -1,78 +1,132 @@
 package com.supplieswind.user.auth.config;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.web.SecurityFilterChain;
 
-// responsible for generating the JWT
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.util.UUID;
+
 @Configuration
-public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
-    @Value("${security.oauth2.client.client-id}")
+//@Import(OAuth2AuthorizationServerConfiguration.class) // automatically registers an AuthorizationServerSettings @Bean, if not already provided.
+public class AuthServerConfig {
+    @Value("${security.oauth2.authorizationserver.client.user-client.registration.client-id}")
     private String clientId;
 
-    @Value("${security.oauth2.client.client-secret}")
+    @Value("${security.oauth2.authorizationserver.client.user-client.registration.client-secret}")
     private String clientSecret;
 
-    @Value("${security.oauth2.client.signing-key}")
-    private String signingKey;
-
-    @Value("${security.oauth2.client.token-validity-seconds}")
+    @Value("${security.oauth2.authorizationserver.client.user-client.registration.token-validity-seconds}")
     private int tokenValidityInSecs;
 
-    @Value("${security.oauth2.client.refresh-token-validity-seconds}")
+    @Value("${security.oauth2.authorizationserver.client.user-client.registration.refresh-token-validity-seconds}")
     private int refreshTokenValidityInSecs;
 
-    @Autowired
-    @Qualifier("authenticationManagerBean")
-    private AuthenticationManager authenticationManager;
+    @Value("${security.oauth2.authorizationserver.issuer}")
+    private String issuerUri;
 
-    /*
-    It is a helper that translates between JWT encoded token values and OAuth authentication information
-     */
     @Bean
-    public JwtAccessTokenConverter tokenConverter() {
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey(signingKey);
-
-        return converter;
+    @Order(1)
+    SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        return http.build();
     }
 
     @Bean
-    public JwtTokenStore tokenStore() {
-        return new JwtTokenStore(tokenConverter());
+    public RegisteredClientRepository registeredClientRepository() {
+        var registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(clientId)
+                .clientSecret(new BCryptPasswordEncoder(12).encode(clientSecret))
+
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+
+                .scope("read")
+                .scope("write")
+
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofSeconds(tokenValidityInSecs))
+                        .refreshTokenTimeToLive(Duration.ofSeconds(refreshTokenValidityInSecs))
+                        .build())
+
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(true)
+                        .build())
+
+                .redirectUri("http://127.0.0.1:8080/authorized")
+
+                .build();
+
+        return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.authenticationManager(authenticationManager)
-                .tokenStore(tokenStore())
-                .accessTokenConverter(tokenConverter());
+    @Bean
+    public AuthorizationServerSettings authorizationServerSettings() {
+        return AuthorizationServerSettings.builder()
+                .authorizationEndpoint("/oauth2/authorize")
+                .deviceAuthorizationEndpoint("/oauth2/device_authorization")
+                .deviceVerificationEndpoint("/oauth2/device_verification")
+                .tokenEndpoint("/oauth2/token")
+                .tokenIntrospectionEndpoint("/oauth2/introspect")
+                .tokenRevocationEndpoint("/oauth2/revoke")
+                .jwkSetEndpoint("/oauth2/jwks")
+                .issuer(issuerUri) // If the issuer identifier is not configured, it is resolved from the current request.
+                .build();
     }
 
-    @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.tokenKeyAccess("permitAll()")
-                .checkTokenAccess("isAuthenticated()");
+    @Bean
+    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.inMemory().withClient(clientId)
-                .secret(new BCryptPasswordEncoder(12).encode(clientSecret))
-                .scopes("read", "write")
-                .authorizedGrantTypes("password", "refresh_token")
-                .accessTokenValiditySeconds(tokenValidityInSecs)
-                .refreshTokenValiditySeconds(refreshTokenValidityInSecs);
+    @Bean
+    public JWKSource<SecurityContext> jwkSource() {
+        KeyPair keyPair = generateRsaKey();
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
+    }
+
+    private static KeyPair generateRsaKey() {
+        KeyPair keyPair;
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            keyPair = keyPairGenerator.generateKeyPair();
+        }
+        catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+        return keyPair;
     }
 }

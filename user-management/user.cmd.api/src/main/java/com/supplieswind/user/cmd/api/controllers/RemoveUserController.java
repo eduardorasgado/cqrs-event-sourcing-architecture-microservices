@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ public class RemoveUserController {
     private final CommandGateway commandGateway;
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('WRITE_PRIVILEGE')")
     public ResponseEntity<?> remove(@Valid @NotBlank(message = "Id is mandatory")
                                         @PathVariable(value = "id") String id) {
         var command = new RemoveUserCommand(id);
