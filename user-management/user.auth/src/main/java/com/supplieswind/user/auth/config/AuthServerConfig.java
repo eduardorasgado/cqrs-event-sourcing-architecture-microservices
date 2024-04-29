@@ -11,10 +11,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -24,6 +27,8 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -32,7 +37,11 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 @Configuration
 //@Import(OAuth2AuthorizationServerConfiguration.class) // automatically registers an AuthorizationServerSettings @Bean, if not already provided.
@@ -52,6 +61,25 @@ public class AuthServerConfig {
     @Value("${security.oauth2.authorizationserver.issuer}")
     private String issuerUri;
 
+    private enum Claims {
+        TOKEN_TYPE("token_type"),
+        ROLES("roles"),
+        USERNAME("username");
+
+        private final String name;
+
+        Claims(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    private static final String ID_TOKEN_TYPE = "id_token";
+    private static final String ACCESS_TOKEN_TYPE = "access_token";
+
     @Bean
     @Order(1)
     SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -69,11 +97,15 @@ public class AuthServerConfig {
         return http.build();
     }
 
+    // this works for a single client or a couple of clients(internal apps)
+    // but when we offer a service to a whole list of clients that are paying on demand for our data
+    // we need to put clients in our database with a service, repository
+    // see https://docs.spring.io/spring-authorization-server/reference/guides/how-to-jpa.html
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
         var registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
-                .clientSecret("{noop}" + clientSecret) //new BCryptPasswordEncoder(12).encode(clientSecret)
+                .clientSecret(new BCryptPasswordEncoder(12).encode(clientSecret))
 
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 
@@ -85,7 +117,9 @@ public class AuthServerConfig {
                 .tokenSettings(tokenSettings())
                 .clientSettings(clientSettings())
 
-                .redirectUri("https://oauthdebugger.com/debug") // the redirection after success
+                // the redirection after success, should be the same requested to /oauth2/token
+                // as redirect_uri key
+                .redirectUri("https://oauthdebugger.com/debug")
 
                 .build();
 
@@ -158,5 +192,44 @@ public class AuthServerConfig {
         }
 
         return keyPair;
+    }
+
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
+        return context -> {
+            var principal = context.getPrincipal();
+
+            var tokenType = context.getTokenType();
+            if(isNull(tokenType) || isNull(tokenType.getValue())) {
+                throw new RuntimeException("Invalid token in context");
+            }
+
+            var claims = context.getClaims();
+            if(isNull(claims)) {
+                throw new RuntimeException("Invalid context claims");
+            }
+
+            var typeValue = tokenType.getValue();
+
+            if(typeValue.equals(ID_TOKEN_TYPE)) {
+                claims.claim(Claims.TOKEN_TYPE.getName(), ID_TOKEN_TYPE);
+            }
+
+            else if(typeValue.equals(ACCESS_TOKEN_TYPE)) {
+                processAccessToken(principal, claims);
+            }
+        };
+    }
+
+    private static void processAccessToken(Authentication principal, JwtClaimsSet.Builder claims) {
+        claims.claim(Claims.TOKEN_TYPE.getName(), ACCESS_TOKEN_TYPE);
+
+        Set<String> roles = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
+
+        claims
+                .claim(Claims.ROLES.getName(), roles)
+                .claim(Claims.USERNAME.getName(), principal.getName());
     }
 }

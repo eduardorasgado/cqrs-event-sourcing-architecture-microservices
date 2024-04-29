@@ -19,6 +19,9 @@ public class SecurityConfig {
     @Value("${security.oauth2.authenticationserver.issuer}")
     private String issuerUri;
 
+    private final static String ROLES_CLAIM = "roles";
+    private final static String AUTHORITY_PREFIX = "";
+
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http
@@ -33,26 +36,12 @@ public class SecurityConfig {
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         var grantedAuthoritiesConverer = new JwtGrantedAuthoritiesConverter();
 
-        grantedAuthoritiesConverer.setAuthoritiesClaimName("roles");
-        grantedAuthoritiesConverer.setAuthorityPrefix("");
+        grantedAuthoritiesConverer.setAuthoritiesClaimName(ROLES_CLAIM);
+        grantedAuthoritiesConverer.setAuthorityPrefix(AUTHORITY_PREFIX);
 
         var authConverter = new JwtAuthenticationConverter();
         authConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverer);
 
         return authConverter;
     }
-
-//    @Bean
-//    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(request ->
-//                        request
-//                                .requestMatchers(new AntPathRequestMatcher("/**"))
-//                                .permitAll()
-//                                .anyRequest()
-//                                .authenticated());
-//
-//        return http.build();
-//    }
 }
