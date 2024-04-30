@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: sw-api-gateway
+server:
+  port: 9000

@@ -3,7 +3,6 @@ package com.supplieswind.user.auth.service;
 import com.supplieswind.user.auth.repository.UserRepository;
 import com.supplieswind.user.core.models.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
