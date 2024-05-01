@@ -1,0 +1,31 @@
+#spring
+server:
+  port: 8084
+
+spring:
+  application:
+    name: bankacc.cmd.api
+  #mongodb
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: bank-account-read
+
+custom:
+  axon:
+    eventstore:
+      database: bank-account-write
+  
+#axon
+axon:
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson
+  
+#security
+security:
+  oauth2:
+    authenticationserver:
+      issuer: http://auth-server:8083
