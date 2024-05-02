@@ -16,5 +16,4 @@ public class BankAccountQueryApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BankAccountQueryApplication.class, args);
 	}
-
 }

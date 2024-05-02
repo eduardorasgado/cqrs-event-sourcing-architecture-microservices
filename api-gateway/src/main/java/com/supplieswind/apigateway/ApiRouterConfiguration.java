@@ -14,7 +14,7 @@ public class ApiRouterConfiguration {
         return builder.routes()
                 // auth.user endpoints are not here because it will make the auth token getting process
                 // to fail because of the token URI(PKCE)
-                .route("user-cmd-api-write",
+                .route("user-cmd-api",
                         predSpec -> predSpec
                                 .method(
                                         HttpMethod.POST,
@@ -24,12 +24,19 @@ public class ApiRouterConfiguration {
                                 .path("/api/v1/users", "/api/v1/users/**")
                                 .uri("http://localhost:8081/**"))
 
-                .route("user-qry-api-read",
+                .route("user-qry-api",
                         predSpec -> predSpec
                                 .method(HttpMethod.GET)
                                 .and()
                                 .path("/api/v1/users", "/api/v1/users/**")
                                 .uri("http://localhost:8082/**"))
+
+                .route("bank-account-cmd-api",
+                        predSpec -> predSpec
+                                .method(HttpMethod.POST)
+                                .and()
+                                .path("/api/v1/bank-account/**", "/api/v1/bank-account")
+                                .uri("http://localhost:8084/**"))
 
                 .build();
     }

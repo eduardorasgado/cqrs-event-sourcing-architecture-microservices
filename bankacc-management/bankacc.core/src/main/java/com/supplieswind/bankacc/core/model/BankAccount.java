@@ -1,6 +1,8 @@
 package com.supplieswind.bankacc.core.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +24,7 @@ public class BankAccount {
 
     private Date creationDate;
 
+    @Enumerated(EnumType.STRING)
     private AccountType accountType;
 
     private double balance;

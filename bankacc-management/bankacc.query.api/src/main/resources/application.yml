@@ -15,8 +15,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
     hibernate:
-      dll-auto: update
+      ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/bank-account-read
     username: root
