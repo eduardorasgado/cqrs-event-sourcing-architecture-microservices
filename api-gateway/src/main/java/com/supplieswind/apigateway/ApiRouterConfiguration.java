@@ -33,7 +33,8 @@ public class ApiRouterConfiguration {
 
                 .route("bank-account-cmd-api",
                         predSpec -> predSpec
-                                .method(HttpMethod.POST)
+                                .method(HttpMethod.POST,
+                                        HttpMethod.PATCH)
                                 .and()
                                 .path("/api/v1/bank-account/**", "/api/v1/bank-account")
                                 .uri("http://localhost:8084/**"))
