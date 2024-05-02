@@ -30,8 +30,8 @@ public class CustomAxonConfiguration {
     @Value("${spring.data.mongodb.port:27017}")
     private int mongoPort;
 
-    // mongo db where the tokens are stored
-    @Value("${spring.data.mongodb.database:bank-account-read}")
+    // mongo db where the tracking tokens are stored
+    @Value("${spring.data.mongodb.database:bank-account-tracking}")
     private String readDatabase;
 
     // mongo db to store the axon events

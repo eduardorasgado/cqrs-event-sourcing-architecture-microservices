@@ -10,7 +10,7 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: bank-account-read
+      database: bank-account-tracking-tokens
 
 custom:
   axon:
