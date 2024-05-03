@@ -6,6 +6,7 @@ import com.supplieswind.user.query.api.queries.FindUserByIdQuery;
 import com.supplieswind.user.query.api.queries.SearchUsersQuery;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +55,7 @@ public class UserLookupController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('READ_PRIVILEGE')")
     public ResponseEntity<UserLookupResponse> getUserById(
-            @Valid @NotBlank
+            @Valid @NotBlank(message = "Id is mandatory")
             @PathVariable(value = "id") String id) {
         try {
             UserLookupResponse response = queryGateway.query(new FindUserByIdQuery(id),
@@ -81,7 +82,7 @@ public class UserLookupController {
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('READ_PRIVILEGE')")
     public ResponseEntity<UserLookupResponse> searchUsers(
-            @Valid @NotBlank
+            @Valid @NotBlank(message = "Filter is mandatory")
             @RequestParam(value = "filter") String filter) {
         try {
             UserLookupResponse response = queryGateway.query(new SearchUsersQuery(filter),
