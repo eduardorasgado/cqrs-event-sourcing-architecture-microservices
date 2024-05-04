@@ -40,6 +40,13 @@ public class ApiRouterConfiguration {
                                 .path("/api/v1/bank-account/**", "/api/v1/bank-account")
                                 .uri("http://localhost:8084/**"))
 
+                .route("bank-account-qry-api",
+                        predSpec -> predSpec
+                                .method(HttpMethod.GET)
+                                .and()
+                                .path("/api/v1/bank-account/**", "/api/v1/bank-account")
+                                .uri("http://localhost:8085"))
+
                 .build();
     }
 }
