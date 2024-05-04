@@ -1,5 +1,6 @@
 package com.supplieswind.apigateway;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,18 @@ import org.springframework.http.HttpMethod;
 
 @Configuration
 public class ApiRouterConfiguration {
+
+    @Value("${uri.user.command-api}")
+    private String userCmdApiUri;
+
+    @Value("${uri.user.query-api}")
+    private String userQryApiUri;
+
+    @Value("${uri.bank-account.command-api}")
+    private String bankAccountCmdApiUri;
+
+    @Value("${uri.bank-account.query-api}")
+    private String bankAccountQryApiUri;
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -22,14 +35,14 @@ public class ApiRouterConfiguration {
                                         HttpMethod.DELETE)
                                 .and()
                                 .path("/api/v1/users", "/api/v1/users/**")
-                                .uri("http://localhost:8081/**"))
+                                .uri(userCmdApiUri))
 
                 .route("user-qry-api",
                         predSpec -> predSpec
                                 .method(HttpMethod.GET)
                                 .and()
                                 .path("/api/v1/users", "/api/v1/users/**")
-                                .uri("http://localhost:8082/**"))
+                                .uri(userQryApiUri))
 
                 .route("bank-account-cmd-api",
                         predSpec -> predSpec
@@ -38,14 +51,14 @@ public class ApiRouterConfiguration {
                                         HttpMethod.DELETE)
                                 .and()
                                 .path("/api/v1/bank-account/**", "/api/v1/bank-account")
-                                .uri("http://localhost:8084/**"))
+                                .uri(bankAccountCmdApiUri))
 
                 .route("bank-account-qry-api",
                         predSpec -> predSpec
                                 .method(HttpMethod.GET)
                                 .and()
                                 .path("/api/v1/bank-account/**", "/api/v1/bank-account")
-                                .uri("http://localhost:8085"))
+                                .uri(bankAccountQryApiUri))
 
                 .build();
     }

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: sw-api-gateway
+server:
+  port: 9000
+
+uri:
+  user:
+    command-api: http://api-user-command:8081/**
+    query-api: http://api-user-query:8082/**
+  bank-account:
+    command-api: http://api-bankaccount-command:8084/**
+    query-api: http://api-bankaccount-query:8085/**

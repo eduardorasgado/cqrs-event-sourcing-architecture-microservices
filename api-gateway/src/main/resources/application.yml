@@ -3,3 +3,11 @@ spring:
     name: sw-api-gateway
 server:
   port: 9000
+
+uri:
+  user:
+    command-api: http://localhost:8081/**
+    query-api: http://localhost:8082/**
+  bank-account:
+    command-api: http://localhost:8084/**
+    query-api: http://localhost:8085/**
