@@ -1,0 +1,61 @@
+version: '3.7'
+
+services:
+  api-user-auth:
+    container_name: api-user-auth
+    image: eduardorasgadoruiz/api.user.auth:1.0.0
+    restart: always
+    ports:
+      - 8083:8083
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+  api-user-command:
+    container_name: api-user-command
+    image: api.user.cmd:latest
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+  api-user-query:
+    container_name: api-user-query
+    image: api.user.query:latest
+    restart: always
+    ports:
+      - 8082:8082
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+  api-bankaccount-command:
+    container_name: api-bankaccount-command
+    image: api.bankacc.cmd:latest
+    restart: always
+    ports:
+      - 8084:8084
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+  api-bankaccount-query:
+    container_name: api-bankaccount-query
+    image: api.bankacc.query:latest
+    restart: always
+    ports:
+      - 8085:8085
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+  api-gateway:
+    container_name: api-gateway
+    image: eduardorasgadoruiz/api.gateway:1.0.0
+    restart: always
+    ports:
+      - 9000:9000
+    environment:
+      - "SPRING_PROFILES_ACTIVE=prod"
+
+networks:
+  default:
+    external:
+      name: springbankNet
