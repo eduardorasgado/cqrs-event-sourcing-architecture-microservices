@@ -1,0 +1,44 @@
+#spring
+server:
+  port: 8085
+
+spring:
+  application:
+    name: bankacc.query.api
+  #mongodb
+  data:
+    mongodb:
+      host: mongo-container
+      port: 27017
+      database: bank-account-tracking-tokens
+  #mysql db
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://mysql-container:3306/bank-account-read
+    username: root
+    password: springbankRootPsw
+
+custom:
+  axon:
+    eventstore:
+      database: bank-account-write
+
+#axon
+axon:
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson
+
+#security
+security:
+  oauth2:
+    authenticationserver:
+      issuer: http://api-user-auth:8083
